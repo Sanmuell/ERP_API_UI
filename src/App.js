@@ -12,6 +12,7 @@ function App() {
   const [data, setData] = useState([]);
   const [modalInserir, setModalInserir] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
+  const [modalDeletar, setModalDeletar] = useState(false);
   const [empresaSelecionada, setEmpresaSelecionada] = useState({
     id: '',
     nomeFantasia: '',
@@ -33,6 +34,9 @@ function App() {
   }
   const abrirFecharModalEditar = () => {
     setModalEditar(!modalEditar);
+  }
+  const abrirFecharModalDeletar = () => {
+    setModalDeletar(!modalDeletar);
   }
 
 
@@ -96,11 +100,32 @@ function App() {
         }
       })
   }
+  const peticionDelete = async () => {
+    await axios.delete(baseUrl + "/" + empresaSelecionada.id)
+      .then(response => {
+        setData(data.filter(empresa => empresa.id !== response.data));
+        abrirFecharModalDeletar();
+      }).catch(error => {
+
+        if (error.response) {
+
+          console.log(error.response.data);
+          console.log(error.response.status);
+          console.log(error.response.headers);
+        } else if (error.request) {
+
+          console.log(error.request);
+        } else {
+
+          console.log('Error', error.message);
+        }
+      })
+  }
 
   const selecionarEmpresa = (empresa, caso) => {
     setEmpresaSelecionada(empresa);
-    (caso === "Editar") &&
-      abrirFecharModalEditar();
+    (caso === "Editar") ?
+      abrirFecharModalEditar() : abrirFecharModalDeletar();
   }
 
   useEffect(() => {
@@ -131,7 +156,7 @@ function App() {
               <td>{empresa.cnpj}</td>
               <td>
                 <button className="btn btn-primary" onClick={() => selecionarEmpresa(empresa, "Editar")}><FontAwesomeIcon icon={faEdit} /></button> {"   "}
-                <button className="btn btn-danger"><FontAwesomeIcon icon={faTrashAlt} /></button>
+                <button className="btn btn-danger" onClick={() => selecionarEmpresa(empresa, "Deletar")}><FontAwesomeIcon icon={faTrashAlt} /></button>
               </td>
             </tr>
           ))}
@@ -194,6 +219,19 @@ function App() {
           <button className="btn btn-danger" onClick={() => abrirFecharModalEditar()}>Cancelar</button>
         </ModalFooter>
       </Modal>
+
+      <Modal isOpen={modalDeletar}>
+        <ModalHeader>Inserir Emrpesa</ModalHeader>
+        <ModalBody>
+          Tem certeza que deseja deletar ? {empresaSelecionada && empresaSelecionada.nomeFantasia}?
+        </ModalBody>
+        <ModalFooter>
+          <button className="btn btn-danger" onClick={() => peticionDelete()}>Sim</button>{"   "}
+          <button className="btn btn-secondary" onClick={() => abrirFecharModalDeletar()}>Não</button>
+        </ModalFooter>
+      </Modal>
+
+
 
     </div>
 
